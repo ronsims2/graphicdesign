@@ -10,17 +10,10 @@ app.displayDialogs = DialogModes.NO;
 var openDocs = app.documents;
 
 for (var i = 0; i < openDocs.length; i++) {
-  if (i === 0) {
-    alert(openDocs[i].fullName);
-    alert(openDocs[i].path);
-    alert(openDocs[i].name);
-    alert(openDocs[i].height);
-    alert(openDocs[i].width);
-  }
-
+  //Make sure currenct doc is set to active
+  app.activeDocument = openDocs[i];
   var isPortrait = checkIsPortrait(openDocs[i]);
   scaleImageDown(openDocs[i],isPortrait, false);
-
 }
 
 function getSideAndScale(side, maxSide) {
@@ -41,27 +34,31 @@ function checkIsPortrait(doc) {
 }
 
 function scaleImageDown(doc, isPortrait, makeSquare) {
-  var height = 0;
-  var width = 0;
+  var height = doc.height;
+  var width = doc.width;
   if (isPortrait) {
     var heightAndScale = getSideAndScale(doc.height, maxDim);
-    var width = doc.width - (doc.width * heightAndScale[1]);
-    doc.resizeImage();
+    height = heightAndScale[0];
+    width = doc.width - (doc.width * heightAndScale[1]);
   }
   else {
-
+    var widthAndScale = getSideAndScale(doc.width, maxDim);
+    height = widthAndScale[1] !== 1 ? doc.height - (doc.height * widthAndScale[1]) : doc.height;
+    width = widthAndScale[0];
   }
+
+  if (height !== doc.height) {
+    doc.resizeImage(width, height);
+  }
+
+  exportImg(doc, '');
 }
 
 function exportImg(doc, fileSuffix) {
-  var fileNameArray = doc.fullName.split('/');
   var fileName = doc.name.split('.')[0];
   var fileExt = doc.name.split('.')[1];
-  var opts = new JpegSaveOptions();
-  var f = File(var saveToLoc = `${doc.path}/rendered/${fileName}${fileSuffix}.${fileExt}`);
-  doc.exportDocument(f, ExportType.SAVEFORWEB, {
-    format: SaveDocumentType.JPEG,
-    optimized: false,
-    quality: 70
-  });
+  var filePath = '~/Desktop' + '/rendered/' + fileName + fileSuffix + '.' + fileExt;
+  var f = new File(filePath);
+
+  doc.exportDocument(f, ExportType.SAVEFORWEB);
 }
