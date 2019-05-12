@@ -13,7 +13,8 @@ for (var i = 0; i < openDocs.length; i++) {
   //Make sure currenct doc is set to active
   app.activeDocument = openDocs[i];
   var isPortrait = checkIsPortrait(openDocs[i]);
-  scaleImageDown(openDocs[i],isPortrait, false);
+  scaleImageDown(openDocs[i],isPortrait, false, maxDim);
+  scaleImageDown(openDocs[i], isPortrait, true, (iconBaseSize * 3));
 }
 
 function getSideAndScale(side, maxSide) {
@@ -33,25 +34,57 @@ function checkIsPortrait(doc) {
   return doc.height > doc.width
 }
 
-function scaleImageDown(doc, isPortrait, makeSquare) {
+function scaleImageDown(doc, isPortrait, makeSquare, side) {
   var height = doc.height;
   var width = doc.width;
-  if (isPortrait) {
-    var heightAndScale = getSideAndScale(doc.height, maxDim);
-    height = heightAndScale[0];
-    width = doc.width - (doc.width * heightAndScale[1]);
-  }
+  var suffix = '';
+  var heightAndScale;
+  var widthAndScale;
+
+  if (makeSquare) {
+    switch(side) {
+      case 240:
+      suffix = '@2x';
+      break;
+      case 360:
+      suffix = '@3x';
+      break;
+      default:
+      suffix = '@1x';
+    }
+
+    if (isPortrait) {
+      //use short side to resize
+      widthAndScale = getSideAndScale(doc.width, side);
+      height = widthAndScale[1] !== 1 ? doc.height - (doc.height * widthAndScale[1]) : doc.height;
+      width = widthAndScale[0];
+    }
+    else {
+      heightAndScale = getSideAndScale(doc.height, side);
+      width = heightAndScale[1] !== 1 ? doc.width - (doc.width * heightAndScale[1]) : doc.width;
+      height = heightAndScale[0];
+    }
+    doc.resizeCanvas(width, height, AnchorPosition.MIDDLECENTER);
+    exportImg(doc, suffix);
+  }//end make square
   else {
-    var widthAndScale = getSideAndScale(doc.width, maxDim);
-    height = widthAndScale[1] !== 1 ? doc.height - (doc.height * widthAndScale[1]) : doc.height;
-    width = widthAndScale[0];
-  }
+    if (isPortrait) {
+      heightAndScale = getSideAndScale(doc.height, side);
+      width = heightAndScale[1] !== 1 ? doc.width - (doc.width * heightAndScale[1]) : doc.width;
+      height = heightAndScale[0];
+    }
+    else {
+      widthAndScale = getSideAndScale(doc.width, side);
+      height = widthAndScale[1] !== 1 ? doc.height - (doc.height * widthAndScale[1]) : doc.height;
+      width = widthAndScale[0];
 
-  if (height !== doc.height) {
-    doc.resizeImage(width, height);
-  }
+      if (height !== doc.height) {
+        doc.resizeImage(width, height);
+      }
 
-  exportImg(doc, '');
+      exportImg(doc, suffix);
+    }
+  }
 }
 
 function exportImg(doc, fileSuffix) {
