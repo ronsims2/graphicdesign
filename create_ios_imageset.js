@@ -15,6 +15,8 @@ for (var i = 0; i < openDocs.length; i++) {
   var isPortrait = checkIsPortrait(openDocs[i]);
   scaleImageDown(openDocs[i],isPortrait, false, maxDim);
   scaleImageDown(openDocs[i], isPortrait, true, (iconBaseSize * 3));
+  scaleImageDown(openDocs[i], isPortrait, true, (iconBaseSize * 2));
+  scaleImageDown(openDocs[i], isPortrait, true, (iconBaseSize));
 }
 
 function getSideAndScale(side, maxSide) {
@@ -64,7 +66,8 @@ function scaleImageDown(doc, isPortrait, makeSquare, side) {
       width = heightAndScale[1] !== 1 ? doc.width - (doc.width * heightAndScale[1]) : doc.width;
       height = heightAndScale[0];
     }
-    doc.resizeCanvas(width, height, AnchorPosition.MIDDLECENTER);
+    doc.resizeImage(width, height);
+    doc.resizeCanvas(side, side, AnchorPosition.MIDDLECENTER);
     exportImg(doc, suffix);
   }//end make square
   else {
